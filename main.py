@@ -27,7 +27,7 @@ for cat, ext in CAT_TO_EXT.items():
     for e in ext:
         ext_to_category[e] = cat
         
-CATEGORY_NAMES = set(CAT_TO_EXT.keys()) | {"Others"}
+CATEGORY_NAMES = {f"Sorted {cat}" for cat in CAT_TO_EXT.keys()} | {"Others"}
         
 
 def user_input_path():
@@ -61,11 +61,11 @@ def ensure_utf8_printing():
 
 def create_folders(target_folder: Path):
     for cat in CAT_TO_EXT.keys():
-        folder_path = target_folder / cat
-        folder_path.mkdir(exist_ok=True)
+        folder_path = target_folder / f"Sorted {cat}"
+        folder_path.mkdir(parents=True, exist_ok=True)
         
     other_folder_path = target_folder / "Others"
-    other_folder_path.mkdir(exist_ok=True)
+    other_folder_path.mkdir(parents=True, exist_ok=True)
     
 def already_moved(dest_path: Path, root_folder: Path) -> bool:
     try:
@@ -95,11 +95,15 @@ def organize_downloads(target_folder: Path):
         if f.is_file():
             ext = f.suffix.lower()
             cat = ext_to_category.get(ext, "Others")
-            
-                
-            dest_folder = target_folder / cat
-            dest_path = dest_folder / f.name # destination path to easily check for conflicts
-            
+
+            if cat == "Others":
+                dest_folder = target_folder / "Others"
+            else:
+                dest_folder = target_folder / f"Sorted {cat}"
+
+            dest_folder.mkdir(exist_ok=True)  # make sure it exists
+            dest_path = dest_folder / f.name
+
             #handle filename conflicts
             counter = 1
             while dest_path.exists():
